@@ -3,4 +3,5 @@
 <fullyQualifiedTypeName name="java.awt.event.ActionListener"/>
 <fullyQualifiedTypeName name="org.mindrot.jbcrypt.BCrypt"/>
 <fullyQualifiedTypeName name="java.lang.System"/>
+<fullyQualifiedTypeName name="javax.swing.text.JTextComponent"/>
 </qualifiedTypeNameHistroy>

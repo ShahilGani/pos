@@ -50,6 +50,25 @@ import org.mindrot.jbcrypt.*;
 import java.sql.*;
 
 public class UI{
+	private List<String> getCustomerSuggestions(String input) {
+	    List<String> suggestions = new ArrayList<>();
+	    String dbUrl = "jdbc:sqlserver://localhost:1433;databaseName=aroniumdb";
+	    String username = "sa";
+	    String password = "password1@";
+
+	    String query = "SELECT Name FROM Customer WHERE Name LIKE ?"; // Replace 'Customers' with your table name
+	    try (Connection conn = DriverManager.getConnection(dbUrl, username, password);
+	         PreparedStatement stmt = conn.prepareStatement(query)) {
+	        stmt.setString(1, input + "%"); // Fetch names starting with the input
+	        ResultSet rs = stmt.executeQuery();
+	        while (rs.next()) {
+	            suggestions.add(rs.getString("Name"));
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return suggestions;
+	}
 	public class PaymentPopulator {
 	    
 	    // Method to get payment types from the database
@@ -95,9 +114,9 @@ public class UI{
 	JButton btnSelect, btnSaveOrder, btnVoid, btnSearch, btnPrintRcpt, btnLastTrans, btnlogoff;
     DefaultTableModel model, resultModel;
     JTable tblSalesTable, tblSearchResult;
-    JTextField txtSearch, txtBcode, txtTamount, txtChange, txtTotal, txtOrderNumber, txtTableNumber, txtDiscount;
+    JTextField txtSearch, txtBcode, txtTamount, txtChange, txtTotal, txtOrderNumber, txtTableNumber, txtDiscount, txtCustomerName;
     JLabel lblBcode, lbldepartment, lblTamount, lblChange, lblTotal, lblCustomer, lblSection, lblTableNumber, lblUsernameTxt, lblSessionIDTxt;
-    JComboBox<String> cmbSection, cmbdepartment, cmbTableNumber;
+    JComboBox<String> cmbSection, cmbdepartment, cmbTableNumber, CmbCustomerName;
     JPanel searchPanel;
     JDialog searchDialog;
     JScrollPane searchScrollPane;
@@ -369,11 +388,11 @@ public class UI{
         rightPanel.add(lblCustomerName, rightGbc);
 
         // Customer Name Text Field (inside right panel)
-        JTextField txtCustomerName = new JTextField();
+        txtCustomerName = new JTextField();
         txtCustomerName.setFont(f);
         txtCustomerName.setPreferredSize(new Dimension(400, 30));
+        txtCustomerName.setEditable(true);
         rightGbc.gridx = 1;  // Align text field to the right side of the label
-        rightPanel.add(txtCustomerName, rightGbc);
 
         // Payment Label (inside right panel)
         JLabel lblPayment = new JLabel("Payment Mode");
@@ -941,15 +960,15 @@ public class UI{
 			        LocalTime now = LocalTime.now();
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 					System.out.println(now.format(formatter));
-					printerServices.printString("POS-Printer", Bold_on + " GIFTED HANDS PVT CLINIC" + Bold_off + "\n\n");
-		            printerServices.printString("POS-Printer", "Lilongwe \n");
-		            printerServices.printString("POS-Printer", "Our Confidence Is Our Capabality \n");
-		            printerServices.printString("POS-Printer", "Cell: +265 886 498 222  \n     +265 995 767 137 \n");
-		            printerServices.printString("POS-Printer", "Date: " + mydate + "\n\n");
-					printerServices.printString("POS-Printer", "Time: " + now.format(formatter) + "\n\n");
-					printerServices.printString("POS-Printer", "Transaction No.: 19-200-"+paddedOrders);
+					printerServices.printString("POS-Printer2", Bold_on + " GIFTED HANDS PVT CLINIC" + Bold_off + "\n\n");
+		            printerServices.printString("POS-Printer2", "Lilongwe \n");
+		            printerServices.printString("POS-Printer2", "Our Confidence Is Our Capabality \n");
+		            printerServices.printString("POS-Printer2", "Cell: +265 886 498 222  \n     +265 995 767 137 \n");
+		            printerServices.printString("POS-Printer2", "Date: " + mydate + "\n\n");
+					printerServices.printString("POS-Printer2", "Time: " + now.format(formatter) + "\n\n");
+					printerServices.printString("POS-Printer2", "Transaction No.: 19-200-"+paddedOrders);
 					int strSize = 0;
-					printerServices.printString("POS-Printer", "\n------------------------------------------\n");
+					printerServices.printString("POS-Printer2", "\n------------------------------------------\n");
 					for (int count = 0; count < model.getRowCount(); count++){
 						
 				           String desc = ((model.getValueAt(count, 1).toString()));
@@ -976,8 +995,8 @@ public class UI{
 				           //printerServices.printString("EPSON TM-T20II Receipt", desc + "  " + price + " X " + q + "  " + DBsubTotal +"  "+ tax +"\n");
 				           //sellItem(desc, tax, price, q);
 					}
-					printerServices.printString("POS-Printer", printText);
-					printerServices.printString("POS-Printer", "------------------------------------------\n");
+					printerServices.printString("POS-Printer2", printText);
+					printerServices.printString("POS-Printer2", "------------------------------------------\n");
 					BigDecimal sbCash = new BigDecimal(txtTamount.getText());
 					sbCash = sbCash.setScale(2, RoundingMode.HALF_UP);
 					BigDecimal sbTaxable = new BigDecimal(taxableSales);
@@ -996,11 +1015,14 @@ public class UI{
 					printerServices.printString("EPSON TM-T20II Receipt", "------------------------------------------\n");*/
 					salesDetails += "Sales Taxable A    : " + sbTaxable +"\n" + "Tax Total          : " + sbItemTax +"\n" + "Sales NonTaxable B : " + sbNonTaxable +"\n" + "Total              : " + txtTotal.getText() +"\n" + "Cash               : " + sbCash +"\n" + "Change             : " + txtChange.getText() +"\n" + "------------------------------------------\n";
 					salesDetails += "Sales NonTaxable B : " + sbNonTaxable +"\n" + "Total              : " + txtTotal.getText() +"\n" + "Cash               : " + sbCash +"\n" + "Change             : " + txtChange.getText() +"\n" + "------------------------------------------\n";
-					printerServices.printString("POS-Printer", salesDetails);
+					printerServices.printString("POS-Printer2", salesDetails);
 					//calcSumTotalPaidAmnt(Pmode, Tandered);
 					//totalCash();
-					printerServices.printString("POS-Printer", "Get well soon!!!!!\n\n\n\n\n");
-					printerServices.printBytes("POS-Printer", cutP);
+					printerServices.printString("POS-Printer2", "------------------------------------------\n");
+					printerServices.printString("POS-Printer2", "Operator: " + lblUsernameTxt.getText() + "\n\n");
+					printerServices.printString("POS-Printer2", "------------------------------------------\n");
+					printerServices.printString("POS-Printer2", "Get well soon!!!!!\n\n\n\n\n");
+					printerServices.printBytes("POS-Printer2", cutP);
 					//closingFiscalReceipt();
 					//disconnect();
 					model.setRowCount(0);

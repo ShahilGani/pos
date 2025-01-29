@@ -44,6 +44,7 @@ import com.datecs.fiscalprinter.tza.FMP10TZA;
 import com.fazecast.jSerialComm.*;
 
 import org.mindrot.jbcrypt.*;
+
 import java.sql.*;
 
 public class UI{
@@ -1618,7 +1619,7 @@ public class PaymentPopulator {
 		
 	}
 	private boolean validateUser(String username, String password) {
-        boolean isValid = false;
+		boolean isValid = false;
         try {
 			File file = new File("C:\\libraries\\config.txt");
 			BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -1627,14 +1628,22 @@ public class PaymentPopulator {
 			String user = reader.readLine();
 			String pass = reader.readLine();
 			String DBName = reader.readLine();
-			String connectionUrl = "jdbc:sqlserver://" + ip + ":1433;databaseName=" + DBName + ";user=" + user + ";password=" + pass ;
+			String connectionUrl = "jdbc:sqlserver://" + ip + ":1433;databaseName=" + DBName + ";user=" + user + ";password=" + pass;
 			try (Connection con = DriverManager.getConnection(connectionUrl);
-		             PreparedStatement pst = con.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?")) {
+		             PreparedStatement pst = con.prepareStatement("SELECT * FROM [aroniumdb].[dbo].[users] WHERE UserName = ? AND Accesslevel = 9")) {
 		            pst.setString(1, username);
-		            pst.setString(2, password);
-		            try (ResultSet rs = pst.executeQuery()) {
-		                isValid = rs.next();
-		            }
+		            //pst.setString(2, password);
+		            ResultSet rs = pst.executeQuery();
+                    
+                    if (!rs.next()) {
+                        JOptionPane.showMessageDialog(null, "!!!Wrong User Name or password!!!");
+                    } else {
+    		            String hashedPassword = rs.getString("Password");
+                    	String compatibleHash = hashedPassword.replace("$2y$", "$2a$");
+                    	if (BCrypt.checkpw(password, compatibleHash)) {
+                    		isValid = true;
+                    	}
+                    }
 		        } catch (SQLException ex) {
 		            ex.printStackTrace();
 		        }
