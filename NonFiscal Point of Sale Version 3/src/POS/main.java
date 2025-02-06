@@ -206,7 +206,6 @@ private class loginCheck implements KeyListener{
 	
 }
 
-
 private class loginAction implements ActionListener {
     public void actionPerformed(ActionEvent arg0) {
         String uname = txtUserName.getText();

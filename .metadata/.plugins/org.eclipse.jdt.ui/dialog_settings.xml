@@ -3,11 +3,12 @@
 	<item value="C:\Libraries" key="org.eclipse.jdt.ui.lastextjar"/>
 	<section name="FatJarPackageWizard">
 		<item value="C:\Users\shahil\Documents\workspace" key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION"/>
-		<item value="main (3) - Point of Sale Version 3" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
-		<item value="C:\Libraries\Retail grocery\nonfiscal\salesflow V3.8.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
+		<item value="main (1) - NonFiscal Point of Sale Version 3" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
+		<item value="C:\Libraries\Retail grocery\nonfiscal\Non salesflow V3.8.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
 		<item value="false" key="FatJarPackageWizardPage.ANTSCRIPT_SAVE"/>
 		<item value="1" key="FatJarPackageWizardPage.LIBRARY_HANDLING"/>
 		<list key="FatJarPackageWizardPage.DESTINATION_NAMES_ID">
+			<item value="C:\Libraries\Retail grocery\nonfiscal\Non salesflow V3.8.jar"/>
 			<item value="C:\Libraries\Retail grocery\nonfiscal\salesflow V3.8.jar"/>
 			<item value="C:\Libraries\Retail grocery\nonfiscal\salesflow NF V3.8.jar"/>
 			<item value="C:\Libraries\Retail grocery\nonfiscal\salesflow NF V41.jar"/>
@@ -25,7 +26,13 @@
 		<item value="1" key="rootMode"/>
 		<item value="false" key="linkWithEditor"/>
 	</section>
+	<section name="NewClassWizardPage">
+		<item value="false" key="create_constructor"/>
+		<item value="false" key="create_main"/>
+		<item value="true" key="create_unimplemented"/>
+	</section>
 	<section name="OptionalMessageDialog.hide.">
+		<item value="true" key="org.eclipse.jdt.ui.typecomment.deprecated"/>
 	</section>
 	<section name="quick_assist_proposal_size">
 	</section>

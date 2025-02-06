@@ -111,15 +111,15 @@ public class UI{
 	    
 	}
 	JFrame frame = new JFrame();
-	JButton btnSelect, btnSaveOrder, btnVoid, btnSearch, btnPrintRcpt, btnLastTrans, btnlogoff;
-    DefaultTableModel model, resultModel;
-    JTable tblSalesTable, tblSearchResult;
-    JTextField txtSearch, txtBcode, txtTamount, txtChange, txtTotal, txtOrderNumber, txtTableNumber, txtDiscount;
+	JButton btnTransactions, btnCustomerSearch, btnSelect, btnSaveOrder, btnVoid, btnSearch, btnPrintRcpt, btnLastTrans, btnlogoff, btnCustomerSelect, btnRcptReprint;
+    DefaultTableModel model, resultModel, CustomerResultModel;
+    JTable transactionsTable, tblSalesTable, tblSearchResult, tblCustomerSearchResult;
+    JTextField txtCustomerName, txtSearch, txtBcode, txtTamount, txtChange, txtTotal, txtOrderNumber, txtTableNumber, txtDiscount, txtCustomerSearch;
     JLabel lblBcode, lbldepartment, lblTamount, lblChange, lblTotal, lblCustomer, lblSection, lblTableNumber, lblUsernameTxt, lblSessionIDTxt;
     JComboBox<String> cmbSection, cmbdepartment, cmbTableNumber, CmbCustomerName;
-    JPanel searchPanel;
-    JDialog searchDialog;
-    JScrollPane searchScrollPane;
+    JPanel searchPanel, CustomerSearchPanel;
+    JDialog searchDialog, CustomerSearchDialog;
+    JScrollPane searchScrollPane, CustomerSearchScrollPane;
     public static FMP10TZA mFMP;
     public static InputStream inputBuffer;
     public static OutputStream outputBuffer;
@@ -286,12 +286,12 @@ public class UI{
         btnSaveOrder.setMnemonic(KeyEvent.VK_F5);
         buttonPanel.add(btnSaveOrder);*/
 
-        btnLastTrans = new JButton("Recall Last");
-        btnLastTrans.addActionListener(act);
-        btnLastTrans.setBackground(new Color(52, 235, 140));
-        btnLastTrans.setForeground(Color.BLACK);
-        btnLastTrans.setFont(sf);
-        buttonPanel.add(btnLastTrans);
+        btnRcptReprint = new JButton("Reprint");
+        btnRcptReprint.addActionListener(act);
+        btnRcptReprint.setBackground(new Color(52, 235, 140));
+        btnRcptReprint.setForeground(Color.BLACK);
+        btnRcptReprint.setFont(sf);
+        buttonPanel.add(btnRcptReprint);
 
         btnVoid = new JButton("Delete");
         btnVoid.addActionListener(act);
@@ -315,6 +315,18 @@ public class UI{
         txtTamount.addKeyListener(ch);
         btnPrintRcpt.setFont(sf);
         buttonPanel.add(btnPrintRcpt);
+        
+     // Step 1: Create the "Transactions" button
+        btnTransactions = new JButton("Transactions");
+        btnTransactions.setBackground(new Color(204, 220, 237)); // RGB for #65acad
+        btnTransactions.setFont(sf); // Assuming 'sf' is your predefined font
+        btnTransactions.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showTransactionDialog();
+            }
+        });
+        buttonPanel.add(btnTransactions);
 
         gbc.gridx = 0;
         gbc.gridy = 8;
@@ -370,8 +382,7 @@ public class UI{
         gbc.weighty = 0;
         frame.add(bottomPanel, gbc);
         
-        
-     // Create the right-side panel
+        // Create the right-side panel
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new GridBagLayout());
         rightPanel.setBackground(Color.BLACK);
@@ -380,7 +391,7 @@ public class UI{
         rightGbc.fill = GridBagConstraints.HORIZONTAL;
         
         // Customer Name Label (inside right panel)
-        JLabel lblCustomerName = new JLabel("Customer Name");
+        JLabel lblCustomerName = new JLabel("Client Name");
         lblCustomerName.setFont(sf);
         lblCustomerName.setForeground(Color.WHITE);
         rightGbc.gridx = 0;  // Align label to the left side
@@ -388,76 +399,14 @@ public class UI{
         rightPanel.add(lblCustomerName, rightGbc);
 
         // Customer Name Text Field (inside right panel)
-        CmbCustomerName = new JComboBox<>();
-        CmbCustomerName.setFont(f);
-        CmbCustomerName.setPreferredSize(new Dimension(400, 30));
-        CmbCustomerName.setEditable(true);
+        txtCustomerName = new JTextField();
+        txtCustomerName.setFont(f);
+        txtCustomerName.setPreferredSize(new Dimension(400, 30));
+        //txtCustomerName.setEditable(true);
         rightGbc.gridx = 1;  // Align text field to the right side of the label
-        rightPanel.add(CmbCustomerName, rightGbc);
-        final JTextField editor = (JTextField) CmbCustomerName.getEditor().getEditorComponent();
+        rightPanel.add(txtCustomerName, rightGbc);
+        txtCustomerName.setEditable(false);
         
-        CmbCustomerName.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                String input = editor.getText().trim();
-                
-                // If input is empty, stop updating suggestions
-                if (input.isEmpty()) {
-                    return;
-                }
-
-                // Fetch and update suggestions based on the new input
-                updateSuggestions();
-            }
-            
-            
-            private void updateSuggestions() {
-                String input = editor.getText().trim();
-                if (input.isEmpty()) {
-                    return; // Don't fetch suggestions if input is empty
-                }
-
-                // Fetch suggestions from your data source
-                final List<String> suggestions = getCustomerSuggestions(input);
-
-                // Defer the UI update to prevent IllegalStateException
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Add new suggestions without clearing existing ones
-                        for (String suggestion : suggestions) {
-                            // Check if the item already exists before adding it to avoid duplicates
-                            if (!itemExistsInComboBox(suggestion)) {
-                                CmbCustomerName.addItem(suggestion); // Add the new suggestion
-                            }
-                        }
-
-                        // Keep the user's input and select the entire text
-                        editor.selectAll(); // Select the entire input text
-
-                        // Show the dropdown list only if suggestions are present
-                        if (!suggestions.isEmpty()) {
-                        	CmbCustomerName.showPopup();
-                        }
-                    }
-                });
-            }
-
-            // Helper method to check if an item already exists in the JComboBox
-            private boolean itemExistsInComboBox(String item) {
-                for (int i = 0; i < CmbCustomerName.getItemCount(); i++) {
-                    if (CmbCustomerName.getItemAt(i).equals(item)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-
-
-        });
-
-
         // Payment Label (inside right panel)
         JLabel lblPayment = new JLabel("Payment Mode");
         lblPayment.setFont(sf);
@@ -466,7 +415,7 @@ public class UI{
         rightGbc.gridy = 1;  // Position below Customer Name
         rightPanel.add(lblPayment, rightGbc);
         
-     // Create the Payment dropdown (ComboBox) and populate it
+        // Create the Payment dropdown (ComboBox) and populate it
         cbPayment = new JComboBox<>();
         PaymentPopulator paymentPopulator = new PaymentPopulator();
         paymentPopulator.populatePaymentComboBox(cbPayment);  // Populate with payment types from DB
@@ -490,41 +439,33 @@ public class UI{
         });*/
         rightPanel.add(btnlogoff, rightGbc);
         
-     // Create the right-side panel
-       /* JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new GridBagLayout());
-        rightPanel.setBackground(Color.BLACK);
-        GridBagConstraints rightGbc = new GridBagConstraints();
-        rightGbc.insets = new Insets(5, 5, 5, 5);
-        rightGbc.fill = GridBagConstraints.HORIZONTAL;*/
+     // Adding the Discount Button to the right panel
+        btnCustomerSearch = new JButton("Customer Search");
+        btnCustomerSearch.setFont(sf);
+        btnCustomerSearch.addActionListener(act);
+        rightGbc.gridx = 1; // Align the button to the left side
+        rightGbc.gridy = 2;  // Position below the Payment field
+        rightGbc.gridwidth = 1; // Span across both columns
+        rightPanel.add(btnCustomerSearch, rightGbc);
+        btnCustomerSearch.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createCustomerSearchDialog();
+            }
+        });
 
-       
+        rightPanel.add(btnCustomerSearch, rightGbc);
+        
+        gbc.gridx = 2; // Position to the right of txtBcode and txtTamount
+        gbc.gridy = 4; // Align with the row of txtBcode
+        gbc.gridheight = 3; // Span the rows of txtBcode and txtTamount
+        gbc.fill = GridBagConstraints.BOTH; // Allow expansion
+        gbc.weightx = 0.5; // Adjust as needed
+        gbc.weighty = 0.0; // Adjust as needed
+        gbc.insets = new Insets(5, 5, 5, 5); // Add padding if necessary
 
-        // Payment Dropdown (ComboBox) [uncomment when needed]
-        /*List<String> paymentTypes = getPaymentTypes();  // Get payment types from the database
-        JComboBox<String> cbPayment = new JComboBox<>(paymentTypes.toArray(new String[0]));
-        cbPayment.setFont(f);
-        cbPayment.setPreferredSize(new Dimension(400, 30));
-        rightGbc.gridx = 1;
-        rightPanel.add(cbPayment, rightGbc);*/
-
-        // Add the right panel to the frame
-        /*gbc.gridx = 2; // Adjust grid position for placing on the right
-        gbc.gridy = 4; // Align with the barcode text field row
-        gbc.gridheight = 4; // Span multiple rows if necessary
-        gbc.fill = GridBagConstraints.BOTH;
-        frame.add(rightPanel, gbc);*/
-
-
-        // You can add more buttons or components to the right panel here
-
-        // Add the right panel to the frame
-        gbc.gridx = 2; // Adjust grid position for placing on the right
-        gbc.gridy = 4; // Align with the barcode text field row
-        gbc.gridheight = 4; // Span multiple rows if necessary
-        gbc.fill = GridBagConstraints.BOTH;
         frame.add(rightPanel, gbc);
-
+        
         frame.setVisible(true);
         btnPrintRcpt.setEnabled(false);
         //WinFocusListener winFocus = new WinFocusListener();
@@ -539,6 +480,166 @@ public class UI{
 		
 	}
 	
+
+    public void showTransactionDialog() {
+        // Create the dialog
+        JDialog dialog = new JDialog(frame, "User Transactions", true);
+        dialog.setSize(400, 300);
+        dialog.setLayout(new BorderLayout());
+
+        // Create the JComboBox for payment types
+        final JComboBox<String> paymentTypeComboBox = new JComboBox<>();
+        populatePaymentTypes(paymentTypeComboBox);
+
+        // Create the JTable for transactions
+        String[] columnNames = {"Number", "Total"};
+        final DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+        transactionsTable = new JTable(tableModel);
+
+        // Add action listener to JComboBox to load transactions on selection
+        paymentTypeComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String selectedPaymentType = (String) paymentTypeComboBox.getSelectedItem();
+                loadTransactions(selectedPaymentType, tableModel);
+            }
+        });
+
+        // Add components to the dialog
+        dialog.add(paymentTypeComboBox, BorderLayout.NORTH);
+        dialog.add(new JScrollPane(transactionsTable), BorderLayout.CENTER);
+
+        // Display the dialog
+        dialog.setLocationRelativeTo(frame);
+        dialog.setVisible(true);
+    }
+
+    // Populate payment types into the JComboBox
+ // Populate payment types into the JComboBox using the getConnection() method
+    private void populatePaymentTypes(JComboBox<String> comboBox) {
+        try (Connection conn = getConnection()) { // Get database connection
+            if (conn == null) return; // Exit if connection fails
+
+            String query = "SELECT name FROM PaymentType ORDER BY name";
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(query)) {
+
+                comboBox.addItem("All"); // Default option
+                while (rs.next()) {
+                    comboBox.addItem(rs.getString("name"));
+                }
+            }
+        } catch (SQLException ex) {
+            logError(ex.getMessage(), new File("C:\\libraries\\logs\\errorLog"));
+            ex.printStackTrace();
+        }
+    }
+
+ // Load transactions based on selected payment type
+    private void loadTransactions(String paymentType, DefaultTableModel tableModel) {
+        // Clear existing data
+        tableModel.setRowCount(0);
+
+        String query;
+        if ("All".equals(paymentType)) {
+            query = "SELECT d.Number, d.Total FROM Document d " +
+                    "INNER JOIN Payment p ON d.Id = p.DocumentId " +
+                    "WHERE d.Date = CAST(GETDATE() AS DATE)";
+        } else {
+            query = "SELECT d.Number, d.Total FROM Document d " +
+                    "INNER JOIN Payment p ON d.Id = p.DocumentId " +
+                    "INNER JOIN PaymentType pt ON p.PaymentTypeId = pt.Id " +
+                    "WHERE pt.Name = ? AND d.Date = CAST(GETDATE() AS DATE)";
+        }
+
+        try (Connection conn = getConnection();  // Get database connection
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            if (!"All".equals(paymentType)) {
+                pstmt.setString(1, paymentType);
+            }
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String number = rs.getString("number");
+                    double total = rs.getDouble("total");
+                    tableModel.addRow(new Object[]{number, total});
+                }
+            }
+        } catch (SQLException ex) {
+            logError(ex.getMessage(), new File("C:\\libraries\\logs\\errorLog"));
+            ex.printStackTrace();
+        }
+    }
+
+	/*private void showTransactionsDialog() {
+	    // Create the dialog
+	    JDialog dialog = new JDialog(frame, "User Transactions", true);
+	    dialog.setSize(400, 300);
+	    dialog.setLayout(new BorderLayout());
+
+	    // Create the JComboBox for payment types
+	    JComboBox<String> paymentTypeComboBox = new JComboBox<>();
+	    populatePaymentTypes(paymentTypeComboBox);
+
+	    // Create the JTable for transactions
+	    String[] columnNames = {"Number", "Total"};
+	    DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+	    JTable transactionsTable = new JTable(tableModel);
+
+	    // Add action listener to JComboBox to load transactions on selection
+	    paymentTypeComboBox.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            /*String selectedPaymentType = (String) paymentTypeComboBox.getSelectedItem();
+	            loadTransactions(selectedPaymentType, tableModel);*/
+	        //}
+	    /*});
+
+	    // Add components to the dialog
+	    dialog.add(paymentTypeComboBox, BorderLayout.NORTH);
+	    dialog.add(new JScrollPane(transactionsTable), BorderLayout.CENTER);
+
+	    // Display the dialog
+	    dialog.setLocationRelativeTo(frame);
+	    dialog.setVisible(true);
+	}
+
+	// Step 3: Method to populate payment types into the JComboBox
+	private void populatePaymentTypes(JComboBox<String> comboBox) {
+	    String query = "SELECT name FROM paymentype";
+	    /*try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+	         Statement stmt = conn.createStatement();
+	         ResultSet rs = stmt.executeQuery(query)) {
+	        while (rs.next()) {
+	            comboBox.addItem(rs.getString("name"));
+	        }
+	    } catch (SQLException ex) {
+	        ex.printStackTrace();
+	    }*/
+	//}
+
+	// Step 4: Method to load transactions based on selected payment type
+	/*private void loadTransactions(String paymentType, DefaultTableModel tableModel) {
+	    // Clear existing data
+	    tableModel.setRowCount(0);
+
+	    String query = "SELECT number, total FROM document WHERE paymentype_id = " +
+	                   "(SELECT id FROM paymentype WHERE name = ?) AND date = CAST(GETDATE() AS DATE)";
+	    /*try (Connection conn = DriverManager.getConnection(ar, USER, PASS);
+	         PreparedStatement pstmt = conn.prepareStatement(query)) {
+	        pstmt.setString(1, paymentType);
+	        try (ResultSet rs = pstmt.executeQuery()) {
+	            while (rs.next()) {
+	                String number = rs.getString("number");
+	                double total = rs.getDouble("total");
+	                tableModel.addRow(new Object[]{number, total});
+	            }
+	        }
+	    } catch (SQLException ex) {
+	        ex.printStackTrace();
+	    }*/
+	//}
 	private void showDiscountDialog() {
 	    final JDialog discountDialog = new JDialog(frame, "Apply Discount", true);
 	    discountDialog.setSize(400, 200);
@@ -627,6 +728,7 @@ public class UI{
 	    txtChange.setText(change.toString());
 	}
 	
+	//Patients Searching dialog box
 	 private void createSearchDialog() {
 	        searchDialog = new JDialog(frame, "Search Product", true);
 	        searchDialog.setSize(800, 600);
@@ -655,6 +757,119 @@ public class UI{
 
 	        searchDialog.add(searchPanel);
 	 }
+	 
+	 private class autoCustomerSearch implements DocumentListener {
+		    public void insertUpdate(DocumentEvent e) { searchCustomers(txtCustomerSearch.getText()); }
+		    public void removeUpdate(DocumentEvent e) { searchCustomers(txtCustomerSearch.getText()); }
+		    public void changedUpdate(DocumentEvent e) { searchCustomers(txtCustomerSearch.getText()); }
+	}
+	 
+	 private void logError(String errorMessage, File logFile) {
+		    try (BufferedWriter logWriter = new BufferedWriter(new FileWriter(logFile, true))) {
+		        logWriter.write(new java.util.Date() + " - ERROR: " + errorMessage);
+		        logWriter.newLine();
+		    } catch (IOException ex) {
+		        ex.printStackTrace();
+		    }
+		}
+
+	 private Connection getConnection() {
+		    File configFile = new File("C:\\libraries\\config.txt"); // Path to config file
+		    File posErrorLog = new File("C:\\libraries\\logs\\errorLog"); // Path to log errors
+
+		    try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
+		        // Read config values
+		        String comPort = reader.readLine();  // Not needed for DB, but kept
+		        String ip = reader.readLine();       // Database IP
+		        String user = reader.readLine();     // DB username
+		        String pass = reader.readLine();     // DB password
+		        String dbName = reader.readLine();   // Database name
+		        String till = reader.readLine();     // Till info (optional)
+
+		        // JDBC connection string using the extracted values
+		        String url = "jdbc:sqlserver://" + ip + ":1433;databaseName=" + dbName + ";encrypt=true;trustServerCertificate=true";
+
+		        return DriverManager.getConnection(url, user, pass); // Return the DB connection
+
+		    } catch (IOException | SQLException e) {
+		        logError(e.getMessage(), posErrorLog); // Log errors if any issue
+		        e.printStackTrace();
+		        return null; // Return null if connection fails
+		    }
+		}
+
+	 	private void searchCustomers(String keyword) {
+		    try (Connection conn = getConnection()) { // Get DB connection
+		        if (conn == null) return; // If connection failed, exit
+		      
+		     // Clear table properly
+		        while (CustomerResultModel.getRowCount() > 0) {
+		            CustomerResultModel.removeRow(0);
+		        }
+		        String query = "SELECT Id, Name, PhoneNumber FROM Customer WHERE Name LIKE ?";
+		        System.out.println(query);
+		        PreparedStatement pst = conn.prepareStatement(query);
+		        pst.setString(1, "%" + keyword + "%");
+		        System.out.println(keyword);
+		        ResultSet rs = pst.executeQuery();
+		        
+		        while (rs.next()) {
+		            CustomerResultModel.addRow(new Object[]{rs.getInt("Id"), rs.getString("Name"), rs.getString("PhoneNumber")});
+		        }
+		    } catch (SQLException ex) {
+		        logError(ex.getMessage(), new File("C:\\libraries\\logs\\errorLog"));
+		        ex.printStackTrace();
+		    }
+		}
+
+	
+	 private class SelectAction implements ActionListener {
+	    public void actionPerformed(ActionEvent e) {
+	        int row = tblCustomerSearchResult.getSelectedRow();
+	        if (row != -1) {
+	        	String customerName	= CustomerResultModel.getValueAt(row, 0).toString();
+	            customerName += " - ";
+	            customerName += CustomerResultModel.getValueAt(row, 1).toString();
+	            txtCustomerName.setText(customerName); // Set customer name in the main POS frame
+	            CustomerSearchDialog.dispose();
+	        }
+	    }
+	}
+
+	 
+	 private void createCustomerSearchDialog() {
+		    CustomerSearchDialog = new JDialog(frame, "Search Customer", true);
+		    CustomerSearchDialog.setSize(800, 600);
+		    CustomerSearchDialog.setLayout(new BorderLayout());
+
+		    // Search Panel
+		    CustomerSearchPanel = new JPanel(new BorderLayout());
+		    txtCustomerSearch = new JTextField();
+		    txtCustomerSearch.setFont(sf);
+		    txtCustomerSearch.getDocument().addDocumentListener(new autoCustomerSearch());
+		    CustomerSearchPanel.add(txtCustomerSearch, BorderLayout.NORTH);
+
+		    // Table Model for Customers
+		    CustomerResultModel = new DefaultTableModel();
+		    CustomerResultModel.addColumn("ID");
+		    CustomerResultModel.addColumn("Name");
+		    CustomerResultModel.addColumn("Contact");
+		    tblCustomerSearchResult = new JTable(CustomerResultModel);
+		    tblCustomerSearchResult.setFont(sf);
+		    CustomerSearchScrollPane = new JScrollPane(tblCustomerSearchResult);
+		    CustomerSearchPanel.add(CustomerSearchScrollPane, BorderLayout.CENTER);
+
+		    // Select Button
+		    SelectAction selectActCustomer = new SelectAction();
+		    btnCustomerSelect = new JButton("Select");
+		    btnCustomerSelect.setFont(sf);
+		    btnCustomerSelect.addActionListener(selectActCustomer);
+		    CustomerSearchPanel.add(btnCustomerSelect, BorderLayout.SOUTH);
+
+		    CustomerSearchDialog.add(CustomerSearchPanel);
+		    
+		    CustomerSearchDialog.setVisible(true);
+		}
 
 	/*public class searchDialog extends JDialog{
 		private void showSearchPopup() {
@@ -905,6 +1120,23 @@ public class UI{
 			        	}
 			        	System.out.println(lblUsernameTxt.getText());
 			        	String userName = lblUsernameTxt.getText();
+			        	
+			        	String input = "";
+			        	input = txtCustomerName.getText();
+			        	// Split the string by " - "
+			        	String customerId = "";
+			        	if(!input.isEmpty()){
+			        		String[] parts = input.split(" - ", 2);
+				            // Extract values
+				            customerId = parts[0];  // "Id"
+				            String customerName = parts[1];    // "Customer Name"
+				            // Print results
+				            System.out.println("Number: " + customerId);
+				            System.out.println("Text: " + customerName);
+			        	}
+			            			        	
+			            
+			            
 			        	String SQL = "SELECT * FROM [aroniumdb].[dbo].[user_sessions] WHERE user_id = (SELECT Id FROM [aroniumdb].[dbo].[Users] WHERE Username = \'" + userName + "\') AND [aroniumdb].[dbo].[user_sessions].[Status] = \'Open\'";
 			        	//String SQL = "select * from panda.dbo.productlist where name like \'%" +  code + "%\'";
 			        	System.out.print(SQL);
@@ -915,7 +1147,7 @@ public class UI{
 			            	sessionId13 = rs.getInt("session_id");
 			            	sessionId3 = sessionId13.toString();
 			            }
-			            String transactSQL = "insert into [aroniumdb].[dbo].[document] (Number,UserId,CustomerId,CashRegisterId,OrderNumber,Date,StockDate,Total,IsClockedOut,DocumentTypeId,WarehouseId,ReferenceDocumentNumber,InternalNote,Note,DueDate,Discount,DiscountType,PaidStatus,DateCreated,DateUpdated,DiscountApplyRule, SessionId) values ('19-200-"+paddedOrders +"',(SELECT Id FROM Users WHERE Username = '" + userName + "'), '1', '" + till + "', '"+ numOrders +"','" + mydate + "','" + formatedDate + "','" + total + "', 0, 2, 1, '', '', '', '" + mydate + "', 0, 0, 2, '" + formatedDate +"','" + formatedDate + "', 0," + sessionId3 + ")";
+			            String transactSQL = "insert into [aroniumdb].[dbo].[document] (Number,UserId,CustomerId,CashRegisterId,OrderNumber,Date,StockDate,Total,IsClockedOut,DocumentTypeId,WarehouseId,ReferenceDocumentNumber,InternalNote,Note,DueDate,Discount,DiscountType,PaidStatus,DateCreated,DateUpdated,DiscountApplyRule, SessionId) values ('19-200-"+paddedOrders +"',(SELECT Id FROM Users WHERE Username = '" + userName + "'), '" + customerId + "', '" + till + "', '"+ numOrders +"','" + mydate + "','" + formatedDate + "','" + total + "', 0, 2, 1, '', '', '', '" + mydate + "', 0, 0, 2, '" + formatedDate +"','" + formatedDate + "', 0," + sessionId3 + ")";
 			        	System.out.println(transactSQL);
 			        	stmtSt.executeUpdate(transactSQL, Statement.RETURN_GENERATED_KEYS);
 			        	ResultSet generatedKeys = stmtSt.getGeneratedKeys();
@@ -1024,15 +1256,19 @@ public class UI{
 			        LocalTime now = LocalTime.now();
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 					System.out.println(now.format(formatter));
-					printerServices.printString("POS-Printer2", Bold_on + " GIFTED HANDS PVT CLINIC" + Bold_off + "\n\n");
-		            printerServices.printString("POS-Printer2", "Lilongwe \n");
-		            printerServices.printString("POS-Printer2", "Our Confidence Is Our Capabality \n");
-		            printerServices.printString("POS-Printer2", "Cell: +265 886 498 222  \n     +265 995 767 137 \n");
-		            printerServices.printString("POS-Printer2", "Date: " + mydate + "\n\n");
-					printerServices.printString("POS-Printer2", "Time: " + now.format(formatter) + "\n\n");
-					printerServices.printString("POS-Printer2", "Transaction No.: 19-200-"+paddedOrders);
+					// Load and print the logo
+			        String logoPath = "C:\\Libraries\\company_logo.png"; // Your logo path
+			        byte[] logoBytes = ImagePrinter.convertImageToESC_POS(logoPath);
+			        printerServices.printBytes("POS-Printer", logoBytes); // Print the logo
+					printerServices.printString("POS-Printer", Bold_on + " GIFTED HANDS PVT CLINIC" + Bold_off + "\n\n");
+		            printerServices.printString("POS-Printer", "Lilongwe \n");
+		            printerServices.printString("POS-Printer", "Our Confidence Is Our Capabality \n");
+		            printerServices.printString("POS-Printer", "Cell: +265 886 498 222  \n     +265 995 767 137 \n");
+		            printerServices.printString("POS-Printer", "Date: " + mydate + "\n\n");
+					printerServices.printString("POS-Printer", "Time: " + now.format(formatter) + "\n\n");
+					printerServices.printString("POS-Printer", "Transaction No.: 19-200-"+paddedOrders);
 					int strSize = 0;
-					printerServices.printString("POS-Printer2", "\n------------------------------------------\n");
+					printerServices.printString("POS-Printer", "\n------------------------------------------\n");
 					for (int count = 0; count < model.getRowCount(); count++){
 						
 				           String desc = ((model.getValueAt(count, 1).toString()));
@@ -1059,8 +1295,8 @@ public class UI{
 				           //printerServices.printString("EPSON TM-T20II Receipt", desc + "  " + price + " X " + q + "  " + DBsubTotal +"  "+ tax +"\n");
 				           //sellItem(desc, tax, price, q);
 					}
-					printerServices.printString("POS-Printer2", printText);
-					printerServices.printString("POS-Printer2", "------------------------------------------\n");
+					printerServices.printString("POS-Printer", printText);
+					printerServices.printString("POS-Printer", "------------------------------------------\n");
 					BigDecimal sbCash = new BigDecimal(txtTamount.getText());
 					sbCash = sbCash.setScale(2, RoundingMode.HALF_UP);
 					BigDecimal sbTaxable = new BigDecimal(taxableSales);
@@ -1079,14 +1315,14 @@ public class UI{
 					printerServices.printString("EPSON TM-T20II Receipt", "------------------------------------------\n");*/
 					salesDetails += "Sales Taxable A    : " + sbTaxable +"\n" + "Tax Total          : " + sbItemTax +"\n" + "Sales NonTaxable B : " + sbNonTaxable +"\n" + "Total              : " + txtTotal.getText() +"\n" + "Cash               : " + sbCash +"\n" + "Change             : " + txtChange.getText() +"\n" + "------------------------------------------\n";
 					salesDetails += "Sales NonTaxable B : " + sbNonTaxable +"\n" + "Total              : " + txtTotal.getText() +"\n" + "Cash               : " + sbCash +"\n" + "Change             : " + txtChange.getText() +"\n" + "------------------------------------------\n";
-					printerServices.printString("POS-Printer2", salesDetails);
+					printerServices.printString("POS-Printer", salesDetails);
 					//calcSumTotalPaidAmnt(Pmode, Tandered);
 					//totalCash();
-					printerServices.printString("POS-Printer2", "------------------------------------------\n");
-					printerServices.printString("POS-Printer2", "Operator: " + lblUsernameTxt.getText() + "\n\n");
-					printerServices.printString("POS-Printer2", "------------------------------------------\n");
-					printerServices.printString("POS-Printer2", "Get well soon!!!!!\n\n\n\n\n");
-					printerServices.printBytes("POS-Printer2", cutP);
+					printerServices.printString("POS-Printer", "------------------------------------------\n");
+					printerServices.printString("POS-Printer", "Operator: " + lblUsernameTxt.getText() + "\n\n");
+					printerServices.printString("POS-Printer", "------------------------------------------\n");
+					printerServices.printString("POS-Printer", "Get well soon!!!!!\n\n\n\n\n");
+					printerServices.printBytes("POS-Printer", cutP);
 					//closingFiscalReceipt();
 					//disconnect();
 					model.setRowCount(0);
@@ -1288,58 +1524,9 @@ public class UI{
 			}
 			
 			if (e.getSource()==btnSearch){
-				 if (e.getSource() == btnSearch) {
-		                searchDialog.setVisible(true);
-		            } /*if (e.getSource() == btnSelect) {
-		                int selectedRow = tblSearchResult.getSelectedRow();
-		                if (selectedRow != -1) {
-		                    String sku = (String) resultModel.getValueAt(selectedRow, 0);
-		                    String name = (String) resultModel.getValueAt(selectedRow, 1);
-		                    String price = (String) resultModel.getValueAt(selectedRow, 2);
-		                    model.addRow(new Object[]{sku, name, "", 1, price, price});
-		                    searchDialog.setVisible(false);
-		                }
-		            }*/
-				 
-				/*try {
-					resultModel.setRowCount(0);
-					File file = new File("C:\\libraries\\config.txt");
-					BufferedReader reader = new BufferedReader(new FileReader(file));
-					String comPort = reader.readLine();
-					String ip = reader.readLine();
-					String user = reader.readLine();
-					String pass = reader.readLine();
-					String DBName = reader.readLine();
-					reader.close();
-									
-					String code = txtSearch.getText();
-
-					String connectionUrl = "jdbc:sqlserver://" + ip + ":1433;databaseName=" + DBName + ";user=" + user + ";password=" + pass ;
-					//JOptionPane.showMessageDialog(null, connectionUrl);
-			        try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
-			        	String SQL = "SELECT * FROM [aroniumdb].[dbo].[product] where [aroniumdb].[dbo].[product].name like \'%" +  code + "%\'";
-			        	//String SQL = "select * from panda.dbo.productlist where name like \'%" +  code + "%\'";
-			        	
-			            ResultSet rs = stmt.executeQuery(SQL);
-			            while(rs.next()){
-			            	String SKU = rs.getString("id");
-			            	String name = rs.getString("Name");
-			            	String price = rs.getString("price");
-			            	//int pric = Integer.parseInt(price);
-			            	resultModel.addRow(new Object[] {SKU, name, price});
-			            }
-			        }
-			        // Handle any errors that may have occurred.
-			        catch (SQLException e1) {
-			            e1.printStackTrace();
-			        }
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				tblSearchResult.requestFocus();*/
-				
-			}						
+		        searchDialog.setVisible(true);
+		    }
+			
 			if (e.getSource()==btnSelect){
 				try {
 					File file = new File("C:\\libraries\\config.txt");
@@ -1350,6 +1537,7 @@ public class UI{
 					String pass = reader.readLine();
 					String DBName = reader.readLine();
 					reader.close();
+					System.out.println("test select");
 					int row = tblSearchResult.getSelectedRow();
 					String code = tblSearchResult.getValueAt(row, 0).toString();
 					String connectionUrl = "jdbc:sqlserver://" + ip + ":1433;databaseName=" + DBName + ";user=" + user + ";password=" + pass ;
@@ -1755,6 +1943,138 @@ public class UI{
 			    }	
 			}
 			//******Recall last transaction  button code************
+			if (e.getSource()==btnRcptReprint){
+				try {
+					File file = new File("C:\\libraries\\config.txt");
+					BufferedReader reader = new BufferedReader(new FileReader(file));
+					String comPort = reader.readLine();
+					String ip = reader.readLine();
+					String user = reader.readLine();
+					String pass = reader.readLine();
+					String DBName = reader.readLine();
+					String till = reader.readLine();
+					reader.close();
+					//int row = tblSearchResult.getSelectedRow();
+					//String code = tblSearchResult.getValueAt(row, 0).toString();
+					String connectionUrl = "jdbc:sqlserver://" + ip + ":1433;databaseName=" + DBName + ";user=" + user + ";password=" + pass ;
+					//model.setRowCount(0);
+					
+					PrinterService printerServices = new PrinterService();
+					byte[] cutP = new byte[] { 0x1d, 'V', 1 };
+					float DBsubTotal = 0;
+					Double Total = 0.0;
+					Double ItemTax = 0.0;
+					char taxCode = 'A';
+			        String taxCode2 = String.valueOf(taxCode);
+			        Double taxTotal = 0.0;
+			        Double taxableSales = 0.0;
+			        Double nontaxableSales = 0.0;
+			        String printText = "";
+			        
+			      //Load and print the logo
+			        printerServices.printString("POS-Printer", " DUPLICATE \n");
+			        String logoPath = "C:\\Libraries\\company_logo.png"; // Your logo path
+			        byte[] logoBytes = ImagePrinter.convertImageToESC_POS(logoPath);
+			        printerServices.printBytes("POS-Printer", logoBytes); // Print the logo
+			        printerServices.printString("POS-Printer", Bold_on + "GIFTED HANDS PVT CLINIC" + Bold_off + "\n\n");
+		            printerServices.printString("POS-Printer", "Lilongwe \n");
+		            printerServices.printString("POS-Printer", "Our Confidence Is Our Capabality \n");
+		            printerServices.printString("POS-Printer", "Cell: +265 886 498 222  \n      +265 995 767 137 \n");
+		           
+					
+					int strSize = 0;
+					
+			        
+					try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
+			        	String SQL = "SELECT d.Id, d.Number, d.Date, d.Total AS DocumentTotal, di.ProductId, di.Quantity, di.Price, di.Total, p.Name, u.Username FROM [dbo].[Document] AS d, [dbo].[DocumentItem] AS di, [aroniumdb].[dbo].[Product] AS p, [aroniumdb].[dbo].[Users] AS u WHERE DocumentId =(SELECT TOP 1[Id] FROM [aroniumdb].[dbo].[Document] WHERE Number LIKE '%19-200%' AND CashRegisterID = '" + till + "' ORDER BY Id DESC) AND d.Id = di.DocumentId AND di.ProductId = p.Id AND d.UserId = u.Id";
+			        			
+			        	System.out.println(SQL);
+			        	//String SQL = "select * from panda.dbo.productlist where SKU = \'" +  code + "\'";
+			            //txtTamount.setText(SQL);
+			            ResultSet rs = stmt.executeQuery(SQL);
+			            String date = "";
+		            	String number  = "";
+		            	String name = "";
+		            	Float price = null;
+		            	Float qty = null;
+		            	Float total = null;
+		            	Float DocumentTotal = null;
+		            	String Username = "";
+			            while(rs.next()){
+			            	date = rs.getString("Date");
+			            	number  = rs.getString("Number");
+			            	//String SKU = rs.getString("ProductID");
+			            	name = rs.getString("Name");
+			            	price = rs.getFloat("price");
+			            	qty = rs.getFloat("Quantity");
+			            	total = rs.getFloat("Total");
+			            	DocumentTotal = rs.getFloat("DocumentTotal");
+			            	Username = rs.getString("Username");
+			            	
+			            	String taxID = "";
+			            	/*if (rs.getString("TaxId").equals("2")){
+			            		taxID = "A";
+			            	}else{
+			            		taxID = "B";
+			            	}*/
+			            						       
+			            	strSize = name.length();
+						    
+							if (strSize>25) {
+						        name = name.substring(0, 25);
+						    }
+						    
+						    //DBsubTotal = price * qty;
+						    //total = total + DBsubTotal;
+						    /*if (tax.equals(taxCode2)){
+						       ItemTax = ItemTax + (DBsubTotal * (16.5/100));
+						       taxableSales = taxableSales + DBsubTotal;
+						    }else{*/
+						    	ItemTax = ItemTax + 0.00;
+						       	nontaxableSales = nontaxableSales + DBsubTotal;
+						    //}
+						       	printText +=  name + "   " + price + " X " + qty + "  "+ total +"\n";
+			            }
+			            
+					    printerServices.printString("POS-Printer", "Date: " + date + "\n\n");
+					    printerServices.printString("POS-Printer", "\n------------------------------------------\n");
+					    printerServices.printString("POS-Printer", "Transaction No.: " + number + "\n");
+						printerServices.printString("POS-Printer", printText);
+						printerServices.printString("POS-Printer", "------------------------------------------\n");
+						
+						System.out.println("Date:" + date);
+						System.out.println("Transaction:" + number);
+						System.out.println(printText);
+												
+						String salesDetails = "";
+						//salesDetails += "Sales Taxable A    : " + sbTaxable +"\n" + "Tax Total          : " + sbItemTax +"\n" + "Sales NonTaxable B : " + sbNonTaxable +"\n" + "Total              : " + txtTotal.getText() +"\n" + "Cash               : " + sbCash +"\n" + "Change             : " + txtChange.getText() +"\n" + "------------------------------------------\n";
+						salesDetails += "Sales NonTaxable B : " + DocumentTotal +"\n" + "Total              : " + DocumentTotal +"\n"  + "------------------------------------------\n";
+						printerServices.printString("POS-Printer", salesDetails);
+						System.out.println(salesDetails);
+						System.out.println("Operator :" + Username);
+						printerServices.printString("POS-Printer", "------------------------------------------\n");
+						printerServices.printString("POS-Printer", "Operator: " + lblUsernameTxt.getText() + "\n\n");
+						printerServices.printString("POS-Printer", "------------------------------------------\n");
+						printerServices.printString("POS-Printer", "Get Well Soon!!!!!\n\n\n\n\n");
+						printerServices.printBytes("POS-Printer", cutP);
+						model.setRowCount(0);
+						txtTotal.setText("");
+						txtChange.setText("");
+						txtTamount.setText("");
+						txtCustomerName.setText("");
+						txtBcode.grabFocus();
+						btnPrintRcpt.setEnabled(false);
+			        }
+			        // Handle any errors that may have occurred.
+			        catch (SQLException e1) {
+			            e1.printStackTrace();
+			        }
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			//******Recall last transaction  button code************
 			if (e.getSource()==btnLastTrans){
 				try {
 					File file = new File("C:\\libraries\\config.txt");
@@ -1880,6 +2200,18 @@ public class UI{
 			        	}
 			        	System.out.println(lblUsernameTxt.getText());
 			        	String userName = lblUsernameTxt.getText();
+			        	
+			        	String input = "";
+			        	input = txtCustomerName.getText();
+			        	// Split the string by " - "
+			            String[] parts = input.split(" - ", 2);
+			            // Extract values
+			            String customerId = parts[0];  // "Id"
+			            String customerName = parts[1];    // "Customer Name"
+			            // Print results
+			            System.out.println("Number: " + customerId);
+			            System.out.println("Text: " + customerName);
+			            
 			        	String SQL = "SELECT * FROM [aroniumdb].[dbo].[user_sessions] WHERE user_id = (SELECT Id FROM [aroniumdb].[dbo].[Users] WHERE Username = \'" + userName + "\') AND [aroniumdb].[dbo].[user_sessions].[Status] = \'Open\'";
 			        	//String SQL = "select * from panda.dbo.productlist where name like \'%" +  code + "%\'";
 			        	System.out.print(SQL);
@@ -1890,7 +2222,7 @@ public class UI{
 			            	sessionId13 = rs.getInt("session_id");
 			            	sessionId3 = sessionId13.toString();
 			            }
-			            String transactSQL = "insert into [aroniumdb].[dbo].[document] (Number,UserId,CustomerId,CashRegisterId,OrderNumber,Date,StockDate,Total,IsClockedOut,DocumentTypeId,WarehouseId,ReferenceDocumentNumber,InternalNote,Note,DueDate,Discount,DiscountType,PaidStatus,DateCreated,DateUpdated,DiscountApplyRule, SessionId) values ('19-200-"+paddedOrders +"',(SELECT Id FROM Users WHERE Username = '" + userName + "'), '1', '" + till + "', '"+ numOrders +"','" + mydate + "','" + formatedDate + "','" + total + "', 0, 2, 1, '', '', '', '" + mydate + "', 0, 0, 2, '" + formatedDate +"','" + formatedDate + "', 0," + sessionId3 + ")";
+			            String transactSQL = "insert into [aroniumdb].[dbo].[document] (Number,UserId,CustomerId,CashRegisterId,OrderNumber,Date,StockDate,Total,IsClockedOut,DocumentTypeId,WarehouseId,ReferenceDocumentNumber,InternalNote,Note,DueDate,Discount,DiscountType,PaidStatus,DateCreated,DateUpdated,DiscountApplyRule, SessionId) values ('19-200-"+paddedOrders +"',(SELECT Id FROM Users WHERE Username = '" + userName + "'), '" + customerId + "', '" + till + "', '"+ numOrders +"','" + mydate + "','" + formatedDate + "','" + total + "', 0, 2, 1, '', '', '', '" + mydate + "', 0, 0, 2, '" + formatedDate +"','" + formatedDate + "', 0," + sessionId3 + ")";
 			        	System.out.println(transactSQL);
 			        	stmtSt.executeUpdate(transactSQL);
 			        	for (int count = 0; count < model.getRowCount(); count++){
@@ -1986,11 +2318,15 @@ public class UI{
 			        Double taxableSales = 0.0;
 			        Double nontaxableSales = 0.0;
 			        String printText = "";
-			        BufferedImage logoImage = ImageIO.read(new File("C:\\Libraries\\company_logo.png")); // Replace with the correct path to your logo
+			        /*BufferedImage logoImage = ImageIO.read(new File("C:\\Libraries\\company_logo.png")); // Replace with the correct path to your logo
 			        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			        ImageIO.write(logoImage, "png", baos);
 			        byte[] logoBytes = baos.toByteArray();
-			        printerServices.printBytes("POS-Printer", logoBytes);
+			        printerServices.printBytes("POS-Printer", logoBytes);*/
+			     // Load and print the logo
+			        String logoPath = "C:\\Libraries\\company_logo.png"; // Your logo path
+			        byte[] logoBytes = ImagePrinter.convertImageToESC_POS(logoPath);
+			        printerServices.printBytes("POS-Printer", logoBytes); // Print the logo
 			        printerServices.printString("POS-Printer", Bold_on + " GIFTED HANDS PVT CLINIC" + Bold_off + "\n\n");
 		            printerServices.printString("POS-Printer", "Lilongwe \n");
 		            printerServices.printString("POS-Printer", "Our Confidence Is Our Capabality \n");
@@ -2037,12 +2373,16 @@ public class UI{
 					//salesDetails += "Sales Taxable A    : " + sbTaxable +"\n" + "Tax Total          : " + sbItemTax +"\n" + "Sales NonTaxable B : " + sbNonTaxable +"\n" + "Total              : " + txtTotal.getText() +"\n" + "Cash               : " + sbCash +"\n" + "Change             : " + txtChange.getText() +"\n" + "------------------------------------------\n";
 					salesDetails += "Sales NonTaxable B : " + sbNonTaxable +"\n" + "Total              : " + txtTotal.getText() +"\n" + "Cash               : " + sbCash +"\n" + "Change             : " + txtChange.getText() +"\n" + "------------------------------------------\n";
 					printerServices.printString("POS-Printer", salesDetails);
+					printerServices.printString("POS-Printer", "------------------------------------------\n");
+					printerServices.printString("POS-Printer", "Operator: " + lblUsernameTxt.getText() + "\n\n");
+					printerServices.printString("POS-Printer", "------------------------------------------\n");
 					printerServices.printString("POS-Printer", "Get Well Soon!!!!!\n\n\n\n\n");
 					printerServices.printBytes("POS-Printer", cutP);
 					model.setRowCount(0);
 					txtTotal.setText("");
 					txtChange.setText("");
 					txtTamount.setText("");
+					txtCustomerName.setText("");
 					txtBcode.grabFocus();
 					btnPrintRcpt.setEnabled(false);								
 				} catch (IllegalArgumentException | IOException e2) {

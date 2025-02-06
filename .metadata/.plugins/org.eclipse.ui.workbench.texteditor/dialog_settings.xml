@@ -2,22 +2,23 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="validateUser" key="selection"/>
+		<item value="getConnection" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
-			<item value="validateUser"/>
-			<item value="delete"/>
-			<item value="getEditor()"/>
-			<item value="updateSuggestions"/>
-			<item value="cmbcust"/>
-			<item value="cbmCust"/>
-			<item value="action"/>
-			<item value="selectAct"/>
+			<item value="getconnection"/>
+			<item value="tblsales"/>
+			<item value="showTransactionsDialog"/>
+			<item value="transaction"/>
+			<item value="POS-Pr"/>
+			<item value="operat"/>
+			<item value="POS-Printer2"/>
+			<item value="btnTransactions"/>
 		</list>
 		<list key="replacehistory">
+			<item value="POS-Printer"/>
 			<item value="POS-Printer2"/>
 		</list>
 	</section>
